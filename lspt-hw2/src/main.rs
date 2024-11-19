@@ -102,7 +102,7 @@ fn get_trigram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>>
 }
 
 fn main() -> io::Result<()> {
-    let file_path = "/home/ben-dennison/Documents/GitHub/LSPT-HW2/lspt-hw2/src/1984.txt";
+    let file_path = "1984.txt";
     
     let file_extension = get_extension_from_filename(&file_path).unwrap();
     println!("Reading words from filetype: {}", get_extension_from_filename(file_path).unwrap());
@@ -110,29 +110,43 @@ fn main() -> io::Result<()> {
         
         let words = read_words_from_file(file_path)?;
         let words_len = words.len();
-        let word_occurences = get_word_occurences(&words)?;
-        let bigram_occurences = get_bigram_occurences(&words)?;
-        let trigram_occurences = get_trigram_occurences(&words)?;
+        let word_occurrences = get_word_occurences(&words)?;
+        let bigram_occurrences = get_bigram_occurences(&words)?;
+        let trigram_occurrences = get_trigram_occurences(&words)?;
         println!("Number of words : {}", words_len);
-        println!("Number of unique words : {}", word_occurences.len());
-        println!("Number of interesting bigrams : {}", bigram_occurences.len());
+        println!("Number of unique words : {}", word_occurrences.len());
+        println!("Number of interesting bigrams : {}", bigram_occurrences.len());
         println!("Number of unique interesting bigrams : 23232");
         println!("Number of interesting trigrams : 14379");
-        println!("Number of unique interesting trigrams : {}", trigram_occurences.len());
+        println!("Number of unique interesting trigrams : {}", trigram_occurrences.len());
         println!("");
 
-        println!("Top 64 words:");
-        for (word, count) in word_occurences.iter().take(64) {
+        if word_occurrences.len() >= 64 {
+            println!("Top 64 words:");
+        } else {
+            println!("Top {} word{}:", word_occurrences.len(), if word_occurrences.len() == 1 { "s" } else { "" });
+        }
+        for (word, count) in word_occurrences.iter().take(64) {
             println!("{}: {}", count, word);
         }
         println!("");
-        println!("Top 32 interesting bigrams:");
-        for (bigram, count) in bigram_occurences.iter().take(32) {
+
+        if word_occurrences.len() >= 32 {
+            println!("Top 32 interesting bigrams:");
+        } else {
+            println!("Top {} word{}:", bigram_occurrences.len(), if bigram_occurrences.len() == 1 { "s" } else { "" });
+        }
+        for (bigram, count) in bigram_occurrences.iter().take(32) {
             println!("{}: {}", count, bigram);
         }
         println!("");
-        println!("Top 16 interesting trigrams:");
-        for(trigram, count) in trigram_occurences.iter().take(16) {
+
+        if trigram_occurrences.len() >= 16 {
+            println!("Top 16 interesting trigrams:");
+        } else {
+            println!("Top {} interesting trigram{}:", trigram_occurrences.len(), if trigram_occurrences.len() == 1 { "s" } else { "" });
+        }
+        for(trigram, count) in trigram_occurrences.iter().take(16) {
             println!("{}: {}", count, trigram);
         }
     }
