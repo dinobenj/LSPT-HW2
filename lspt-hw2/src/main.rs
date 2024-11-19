@@ -121,30 +121,31 @@ fn main() -> io::Result<()> {
         println!("Number of unique interesting trigrams : {}", trigram_occurrences.len());
         println!("");
 
-        if word_occurrences.len() >= 64 {
-            println!("Top 64 words:");
-        } else {
-            println!("Top {} word{}:", word_occurrences.len(), if word_occurrences.len() == 1 { "s" } else { "" });
+        match word_occurrences.len() {
+            1 => println!("Top 1 word:"),
+            2..=63 => println!("Top {} words:", word_occurrences.len()),
+            _ => println!("Top 64 words:"),
         }
         for (word, count) in word_occurrences.iter().take(64) {
             println!("{}: {}", count, word);
         }
         println!("");
 
-        if word_occurrences.len() >= 32 {
-            println!("Top 32 interesting bigrams:");
-        } else {
-            println!("Top {} word{}:", bigram_occurrences.len(), if bigram_occurrences.len() == 1 { "s" } else { "" });
+        match bigram_occurrences.len() {
+            1 => println!("Top 1 interesting bigram:"),
+            2..=31 => println!("Top {} interesting bigrams:", bigram_occurrences.len()),
+            _ => println!("Top 32 interesting bigrams:"),
         }
         for (bigram, count) in bigram_occurrences.iter().take(32) {
             println!("{}: {}", count, bigram);
         }
         println!("");
 
-        if trigram_occurrences.len() >= 16 {
-            println!("Top 16 interesting trigrams:");
-        } else {
-            println!("Top {} interesting trigram{}:", trigram_occurrences.len(), if trigram_occurrences.len() == 1 { "s" } else { "" });
+
+        match trigram_occurrences.len() {
+            1 => println!("Top 1 interesting trigram:"),
+            2..=15 => println!("Top {} interesting trigrams:", trigram_occurrences.len()),
+            _ => println!("Top 16 interesting trigrams:"),
         }
         for(trigram, count) in trigram_occurrences.iter().take(16) {
             println!("{}: {}", count, trigram);
