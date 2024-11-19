@@ -1,109 +1,125 @@
 Reading words from filetype: txt
-Number of words : 105527
-Number of unique words : 9624
-Number of interesting bigrams : 56739
+Number of words : 104511
+Number of unique words : 8877
+Number of interesting bigrams : 49566
 Number of unique interesting bigrams : 23232
 Number of interesting trigrams : 14379
-Number of unique interesting trigrams : 13753
+Number of unique interesting trigrams : 58970
 
 Top 64 words:
-2309: was
-1443: that
-1374: it
-1338: had
-1315: he
-985: his
-820: not
-784: you
-708: The
-658: as
-656: be
-651: He
-633: were
-590: at
-583: on
-576: for
-543: It
-527: Winston
+970: you
+545: there
 513: him
-491: I
-471: they
-467: which
-450: or
-440: s
+455: winston
+426: all
 425: could
-416: been
-412: by
-409: but
-402: her
-392: from
-389: one
-371: have
-362: all
-360: there
-354: would
-352: out
-340: said
-339: no
-332: an
-316: up
-287: them
-285: are
+421: her
+392: she
+387: no
+354: out
+329: what
+318: when
+307: even
+289: them
+284: party
 277: into
-275: Party
-265: she
-253: when
-246: even
-245: what
-232: But
-230: their
-220: like
-219: did
-218: You
-218: any
-211: only
-210: There
-208: down
-207: O
-205: Brien
-202: time
-199: more
-195: face
-193: so
-184: They
+238: if
+229: any
+228: did
+228: only
+225: like
+223: down
+208: so
+203: time
+198: thought
+196: face
+195: some
+191: then
+182: never
+179: do
+177: obrien
+177: again
+173: seemed
+171: two
+168: other
+166: over
+166: your
+156: moment
+156: than
+155: back
+151: still
+146: always
+139: man
+136: now
+133: know
+133: very
+128: way
+128: almost
+127: before
+125: war
+124: though
+123: three
+123: words
+122: another
+122: might
+121: years
+120: eyes
+119: can
+119: because
+118: same
+115: me
+114: little
+113: knew
+113: old
 
 Top 32 interesting bigrams:
-323: it was
-286: It was
-266: he had
-214: had been
-205: O Brien
-180: he was
-163: that he
-150: did not
-135: was not
-118: there was
-111: could not
-111: There was
-109: he said
-97: he could
-93: He was
-88: He had
-85: have been
-84: they were
-81: would be
-79: as though
-78: that it
-72: Winston s
-69: was no
-67: that they
-67: that was
-66: Big Brother
-63: she had
-62: could be
-60: on his
-59: that you
-57: they had
-56: it had
+99: there no
+72: big brother
+55: do you
+50: you could
+47: if you
+40: thought police
+36: old man
+34: did know
+31: when you
+30: inner party
+28: you know
+27: party member
+25: all over
+25: what you
+24: you can
+23: years ago
+21: so far
+21: know what
+21: tell you
+21: so long
+21: no longer
+21: above all
+20: could see
+19: some kind
+19: party members
+18: ministry love
+18: even if
+18: you understand
+18: your own
+18: even when
+17: human being
+17: before revolution
 
 Top 16 interesting trigrams:
+13: two minutes hate
+12: do you know
+12: say bells st
+11: three super states
+10: down big brother
+9: made no difference
+9: do you remember
+9: man white coat
+8: bells st clements
+8: oranges lemons say
+8: anti sex league
+8: where there no
+8: junior anti sex
+8: how many fingers
+8: lemons say bells
+8: there no way
