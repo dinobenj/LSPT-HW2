@@ -28,7 +28,13 @@ fn remove_stop_words(words: Vec<&str>) -> io::Result<Vec<&str>> {
 
 }
 
-
+///```
+/// clean removes newline characters, tabs, and quotations from the input string,
+/// Transforms it into lowercase, then 
+/// 
+/// 
+/// 
+/// ```
 fn clean(check: String) -> String {
     let temp: String = check.chars()
         .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '\'')
@@ -102,7 +108,7 @@ fn get_trigram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>>
 }
 
 fn main() -> io::Result<()> {
-    let file_path = "/home/ben-dennison/Documents/GitHub/LSPT-HW2/lspt-hw2/src/1984.txt";
+    let file_path = "/home/ben-dennison/Documents/GitHub/LSPT-HW2/lspt-hw2/src/1984.txt"; //dont hardcode-also read multiple files
     
     let file_extension = get_extension_from_filename(&file_path).unwrap();
     println!("Reading words from filetype: {}", get_extension_from_filename(file_path).unwrap());
@@ -116,8 +122,8 @@ fn main() -> io::Result<()> {
         println!("Number of words : {}", words_len);
         println!("Number of unique words : {}", word_occurences.len());
         println!("Number of interesting bigrams : {}", bigram_occurences.len());
-        println!("Number of unique interesting bigrams : 23232");
-        println!("Number of interesting trigrams : 14379");
+        println!("Number of unique interesting bigrams : 23232"); //gotta finish this one; I dont know what he means by this
+        println!("Number of interesting trigrams : 14379"); //gotta finish this one; I dont know what he means by this
         println!("Number of unique interesting trigrams : {}", trigram_occurences.len());
         println!("");
 
