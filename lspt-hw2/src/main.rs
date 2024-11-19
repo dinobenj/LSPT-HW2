@@ -18,7 +18,6 @@ fn remove_stop_words(words: Vec<&str>) -> io::Result<Vec<&str>> {
     .cloned()
     .collect();
 
-    // Filter out the stop words
     let filtered_words: Vec<&str> = words
         .into_iter()
         .filter(|word| !stop_words.contains(word))
