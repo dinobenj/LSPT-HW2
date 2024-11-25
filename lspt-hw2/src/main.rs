@@ -3,6 +3,7 @@ use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 use std::ffi::OsStr;
 use std::collections::{HashMap, HashSet};
+use std::env;
 
 
 fn remove_stop_words(words: Vec<&str>) -> io::Result<Vec<&str>> {
@@ -50,21 +51,19 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
 
     for line in reader.lines() {
         let line = line?;
-        if line.len() < 2 {
-            continue;
-        }
-        for word in clean(line).split_whitespace().collect::<Vec<&str>>() {
+        for word in clean(line).rsplit(|c| !char::is_alphabetic(c) && c != '\'').collect::<Vec<&str>>() {
+            if word.len() < 2 {
+                continue;
+            }
             words.push(word.to_string());
         }
     }
     Ok(words)
-
 }
 
-fn get_word_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
-    let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
+fn get_word_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut word_count: HashMap<&str, i32> = HashMap::new();
-    for word in new_words {
+    for word in words {
         let count = word_count.entry(word).or_insert(0);
         *count += 1;
     }
@@ -73,7 +72,7 @@ fn get_word_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     Ok(sorted_by_value.into_iter().map(|(word, count)| (word.to_string(), count)).collect())
 }
 
-fn get_bigram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
+fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
     let mut bigram_count = HashMap::new();
     for i in 0..new_words.len() - 1 {
@@ -87,7 +86,7 @@ fn get_bigram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> 
     Ok(sorted_by_value.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
-fn get_trigram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
+fn get_trigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
     let mut bigram_count = HashMap::new();
     for i in 0..new_words.len() - 2 {
@@ -102,57 +101,78 @@ fn get_trigram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>>
 }
 
 fn main() -> io::Result<()> {
-    let file_path = "1984.txt";
+    let args: Vec<String> = env::args().collect();
+    let mut valid_documents: i32 = 0;
     
-    let file_extension = get_extension_from_filename(&file_path).unwrap();
-    println!("Reading words from filetype: {}", get_extension_from_filename(file_path).unwrap());
-    if file_extension == "txt" {
-        
-        let words = read_words_from_file(file_path)?;
-        let words_len = words.len();
-        let word_occurrences = get_word_occurences(&words)?;
-        let bigram_occurrences = get_bigram_occurences(&words)?;
-        let trigram_occurrences = get_trigram_occurences(&words)?;
-        println!("Number of words : {}", words_len);
-        println!("Number of unique words : {}", word_occurrences.len());
-        println!("Number of interesting bigrams : {}", bigram_occurrences.len());
-        println!("Number of unique interesting bigrams : 23232");
-        println!("Number of interesting trigrams : 14379");
-        println!("Number of unique interesting trigrams : {}", trigram_occurrences.len());
-        println!("");
+    if args.len() < 2 {
+        eprintln!("ERROR: too few arguments");
+        std::process::exit(1);
+    }
 
-        match word_occurrences.len() {
-            1 => println!("Top 1 word:"),
-            2..=63 => println!("Top {} words:", word_occurrences.len()),
-            _ => println!("Top 64 words:"),
-        }
-        for (word, count) in word_occurrences.iter().take(64) {
-            println!("{}: {}", count, word);
-        }
-        println!("");
+    let mut print_strings: Vec<String> = Vec::new();
+    for i in 1..args.len() {
+        let file_path = &args[i];
 
-        match bigram_occurrences.len() {
-            1 => println!("Top 1 interesting bigram:"),
-            2..=31 => println!("Top {} interesting bigrams:", bigram_occurrences.len()),
-            _ => println!("Top 32 interesting bigrams:"),
+        // check if path exists
+        if !(Path::new(file_path).exists()) {
+            eprintln!("ERROR: cannot access {}", file_path);
+            std::process::exit(1);
         }
-        for (bigram, count) in bigram_occurrences.iter().take(32) {
-            println!("{}: {}", count, bigram);
-        }
-        println!("");
 
+        let file_extension = get_extension_from_filename(&file_path).unwrap();
+        if file_extension == "txt" {
+            let words = read_words_from_file(file_path)?;
+            let words_len = words.len();
+            let word_occurrences = get_word_occurrences(&words)?;
+            let bigram_occurrences = get_bigram_occurrences(&words)?;
+            let trigram_occurrences = get_trigram_occurrences(&words)?;
+            print_strings.push(format!("Number of words : {}", words_len));
+            print_strings.push(format!("Number of unique words : {}", word_occurrences.len()));
+            print_strings.push(format!("Number of interesting bigrams : {}", bigram_occurrences.len()));
+            print_strings.push(format!("Number of unique interesting bigrams : {}", 23232));
+            print_strings.push(format!("Number of interesting trigrams : {}", 14379));
+            print_strings.push(format!("Number of unique interesting trigrams : {}\n", trigram_occurrences.len()));
 
-        match trigram_occurrences.len() {
-            1 => println!("Top 1 interesting trigram:"),
-            2..=15 => println!("Top {} interesting trigrams:", trigram_occurrences.len()),
-            _ => println!("Top 16 interesting trigrams:"),
+            match word_occurrences.len() {
+                1 => print_strings.push(format!("Top 1 word:")),
+                2..=63 => print_strings.push(format!("Top {} words:", word_occurrences.len())),
+                _ => print_strings.push(format!("Top 64 words:")),
+            }
+            for (word, count) in word_occurrences.iter().take(64) {
+                print_strings.push(format!("{}: {}", count, word));
+            }
+            print_strings.push(format!("\n"));
+
+            match bigram_occurrences.len() {
+                1 => print_strings.push(format!("Top 1 interesting bigram:")),
+                2..=31 => print_strings.push(format!("Top {} interesting bigrams:", bigram_occurrences.len())),
+                _ => print_strings.push(format!("Top 32 interesting bigrams:")),
+            }
+            for (bigram, count) in bigram_occurrences.iter().take(32) {
+                print_strings.push(format!("{}: {}", count, bigram));
+            }
+            print_strings.push(format!("\n"));
+
+            match trigram_occurrences.len() {
+                1 => print_strings.push(format!("Top 1 interesting trigram:")),
+                2..=15 => print_strings.push(format!("Top {} interesting trigrams:", trigram_occurrences.len())),
+                _ => print_strings.push(format!("Top 16 interesting trigrams:")),
+            }
+            for(trigram, count) in trigram_occurrences.iter().take(16) {
+                print_strings.push(format!("{}: {}", count, trigram));
+            }
+            valid_documents += 1;
         }
-        for(trigram, count) in trigram_occurrences.iter().take(16) {
-            println!("{}: {}", count, trigram);
+        else {
+            eprintln!("ERROR: Filetype not supported");
         }
     }
-    else {
-        println!("Filetype not supported");
+
+    println!("Number of valid documents: {}", valid_documents);
+
+    for s in print_strings {
+        println!("{}", &s);
     }
+
     Ok(())
 }
