@@ -30,7 +30,6 @@ fn clean(check: String) -> String {
     let mut in_word: bool = false;
     let mut last_apostrophe: bool = false;
 
-    //println!("BEFORE: {}", temp);
     for (i, c) in temp.clone().char_indices() {
         if !char::is_alphabetic(c) { 
             if c == '\'' && apostrophe_count == 0 && in_word {
@@ -40,7 +39,8 @@ fn clean(check: String) -> String {
             } else {
                 // turn all other non-alphabetical characters or additional apostrophes into whitespace
                 if last_apostrophe {
-                    temp.replace_range(i-1..i, " ")
+                    temp.replace_range(i-1..i, " ");
+                    last_apostrophe = false;
                 }
                 apostrophe_count = 0;
                 in_word = false;
@@ -54,8 +54,6 @@ fn clean(check: String) -> String {
         }
     }
 
-    //let t = temp.to_lowercase();
-    //println!("AFTER: {}", t);
     temp.to_lowercase()
 }
 
@@ -101,7 +99,7 @@ fn get_bigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>
 
         let mut bad: bool = false;
         for word in STOP_WORDS {
-            if word == words[i] || word == words[i+1] {
+            if word == words[i] || word == words[i+1] || words[i].len() < 2 || words[i+1].len() < 2{
                 bad = true;
                 break;
             }
@@ -122,7 +120,8 @@ fn get_trigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)
         let trigram = format!("{} {} {}", words[i], words[i + 1], words[i + 2]);
         let mut bad: bool = false;
         for word in STOP_WORDS {
-            if word == words[i] || word == words[i+1] || word == words[i+2] {
+            if word == words[i] || word == words[i+1] || word == words[i+2] || 
+               words[i].len() < 2 || words[i+1].len() < 2 || words[i+2].len() < 2 {
                 bad = true;
                 break;
             }
@@ -175,9 +174,6 @@ fn main() -> io::Result<()> {
             let cnt = word_occurrences.entry(word.to_string()).or_insert(0);
             *cnt+= 1;
         }
-        let mut word_occurrences_sorted: Vec<_> = word_occurrences.into_iter().collect();
-        word_occurrences_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-        word_occurrences = word_occurrences_sorted.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect();
 
         let file_bigram_occurrences = get_bigram_occurrences(&file_filtered_words)?;
         let file_trigram_occurrences = get_trigram_occurrences(&file_filtered_words)?;
@@ -230,10 +226,10 @@ fn main() -> io::Result<()> {
         2..=63 => println!("Top {} words:", words_sorted.len()),
         _ => println!("Top 64 words:"),
     }
-    for (word, count) in words_sorted.iter().take(64) {
-        println!("{}: {}", count, word);
+
+    for (key, value) in words_sorted.iter().take(64) {
+        println!("{} {}", value, key);
     }
-    println!("\n");
 
     match bigram_sorted.len() {
         1 => println!("Top 1 interesting bigram:"),
@@ -241,7 +237,7 @@ fn main() -> io::Result<()> {
         _ => println!("Top 32 interesting bigrams:"),
     }
     for (bigram, count) in bigram_sorted.iter().take(32) {
-        println!("{}: {}", count, bigram);
+        println!("{} {}", count, bigram);
     }
     println!("");
 
@@ -251,7 +247,7 @@ fn main() -> io::Result<()> {
         _ => println!("Top 16 interesting trigrams:"),
     }
     for(trigram, count) in trigram_sorted.iter().take(16) {
-        println!("{}: {}", count, trigram);
+        println!("{} {}", count, trigram);
     }
 
     Ok(())
