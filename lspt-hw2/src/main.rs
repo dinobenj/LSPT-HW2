@@ -22,7 +22,7 @@ const STOP_WORDS: &'static[&'static str] = &[
  */
 fn clean(check: String) -> String {
     let mut temp: String = check.chars()
-        .filter(|&c| c != '\n' && c != '\t' && c != '\r')
+        .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '«' && c != '»')
         .collect();
 
     // parse entire line
