@@ -54,6 +54,11 @@ fn clean(check: String) -> String {
         }
     }
 
+    if last_apostrophe {
+        temp.replace_range(temp.len()-1..temp.len(), " ");
+    }
+
+
     temp.to_lowercase()
 }
 
@@ -99,12 +104,12 @@ fn get_bigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>
 
         let mut bad: bool = false;
         for word in STOP_WORDS {
-            if word == words[i] || word == words[i+1] || words[i].len() < 2 || words[i+1].len() < 2{
+            if word == words[i] || word == words[i+1] {
                 bad = true;
                 break;
             }
         }
-        if bad {
+        if bad || words[i].len() < 2 || words[i+1].len() < 2 {
             continue;
         }
 
@@ -120,13 +125,12 @@ fn get_trigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)
         let trigram = format!("{} {} {}", words[i], words[i + 1], words[i + 2]);
         let mut bad: bool = false;
         for word in STOP_WORDS {
-            if word == words[i] || word == words[i+1] || word == words[i+2] || 
-               words[i].len() < 2 || words[i+1].len() < 2 || words[i+2].len() < 2 {
+            if word == words[i] || word == words[i+1] || word == words[i+2] {
                 bad = true;
                 break;
             }
         }
-        if bad {
+        if bad || words[i].len() < 2 || words[i+1].len() < 2 || words[i+2].len() < 2 {
             continue;
         }
         let count = trigram_count.entry(trigram).or_insert(0);
@@ -229,7 +233,8 @@ fn main() -> io::Result<()> {
 
     for (key, value) in words_sorted.iter().take(64) {
         println!("{} {}", value, key);
-    }
+    } 
+    println!("");
 
     match bigram_sorted.len() {
         1 => println!("Top 1 interesting bigram:"),
@@ -239,13 +244,24 @@ fn main() -> io::Result<()> {
     for (bigram, count) in bigram_sorted.iter().take(32) {
         println!("{} {}", count, bigram);
     }
+    println!(""); 
+
+    /* 
+    for (bigram, count) in bigram_sorted {
+        println!("{} {}", count, bigram);
+    }
     println!("");
+    */
 
     match trigram_sorted.len() {
         1 => println!("Top 1 interesting trigram:"),
         2..=15 => println!("Top {} interesting trigrams:", trigram_sorted.len()),
         _ => println!("Top 16 interesting trigrams:"),
     }
+    /*
+    for(trigram, count) in trigram_sorted {
+        println!("{} {}", count, trigram);
+    } */
     for(trigram, count) in trigram_sorted.iter().take(16) {
         println!("{} {}", count, trigram);
     }
