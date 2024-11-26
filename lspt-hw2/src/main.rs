@@ -22,7 +22,7 @@ const STOP_WORDS: &'static[&'static str] = &[
  */
 fn clean(check: String) -> String {
     let mut temp: String = check.chars()
-        .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '«' && c != '»')
+        .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '«' && c != '»' && c != '×')
         .collect();
 
     // parse entire line
@@ -85,7 +85,8 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
 
     // Process each word, line by line, then add to word list.
     for line in reader.lines() {
-        let line = line?;
+        let line:String = String::from_utf8_lossy(line?.as_bytes()).to_string();
+        println!("{}", line);
         for word in clean(line).split_whitespace().collect::<Vec<&str>>() {
             if word.len() == 0 {
                 continue;
