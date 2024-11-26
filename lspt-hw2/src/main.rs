@@ -25,26 +25,38 @@ fn clean(check: String) -> String {
         .filter(|&c| c != '\n' && c != '\t' && c != '\r')
         .collect();
 
-    // parse apostrophes
+    // parse entire line
     let mut apostrophe_count: i32 = 0;
     let mut in_word: bool = false;
+    let mut last_apostrophe: bool = false;
+
+    //println!("BEFORE: {}", temp);
     for (i, c) in temp.clone().char_indices() {
         if !char::is_alphabetic(c) { 
             if c == '\'' && apostrophe_count == 0 && in_word {
                 // allow only one apostrophe 
                 apostrophe_count += 1;
+                last_apostrophe = true;
             } else {
                 // turn all other non-alphabetical characters or additional apostrophes into whitespace
+                if last_apostrophe {
+                    temp.replace_range(i-1..i, " ")
+                }
                 apostrophe_count = 0;
                 in_word = false;
                 temp.replace_range(i..i+1, " ");
             }
         } else {
+            if last_apostrophe {
+                last_apostrophe = false;
+            }
             in_word = true;
         }
     }
 
-    temp.replace(|x| !char::is_alphabetic(x), " ").to_lowercase()
+    //let t = temp.to_lowercase();
+    //println!("AFTER: {}", t);
+    temp.to_lowercase()
 }
 
 fn get_extension_from_filename(filename: &str) -> Option<&str> {
@@ -58,7 +70,7 @@ fn get_extension_from_filename(filename: &str) -> Option<&str> {
  * This method returns words that are processed to be entirely in lowercase, with at most one apostrophe.
  * All other characters are treated as delimeters, and are filtered out.
  * 
- * For example, the sequence: "I'm...a word?" will yield the words ["im", "a", "word"].
+ * For example, the sequence: "I'm...a word?" will yield the words ["i'm", "a", "word"].
  * 
  * Notably, stop words and short words are not filtered out.
  */

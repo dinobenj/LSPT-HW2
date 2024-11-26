@@ -1,10 +1,10 @@
 Number of valid documents: 1
-Number of words : 101379
-Number of unique words : 8802
-Number of "interesting" bigrams : 31416
-Number of unique "interesting" bigrams : 24325
-Number of "interesting" trigrams : 15891
-Number of unique "interesting" trigrams : 15227
+Number of words : 101352
+Number of unique words : 8901
+Number of "interesting" bigrams : 31678
+Number of unique "interesting" bigrams : 24642
+Number of "interesting" trigrams : 16163
+Number of unique "interesting" trigrams : 15503
 
 Top 64 words:
 6522: the
@@ -12,82 +12,81 @@ Top 64 words:
 2445: and
 2348: to
 2316: was
-1968: he
-1920: it
+1964: he
 1868: in
-1507: that
+1863: it
+1474: that
 1344: had
 1086: his
-1011: you
+970: you
 850: not
 792: with
 728: as
 665: at
 665: for
 657: be
-657: they
 641: but
+637: they
 636: were
 631: is
 615: on
-572: there
-527: winston
+545: there
 513: him
 472: which
 467: or
-443: one
+455: winston
 436: by
 426: all
 425: could
 422: from
 421: her
 416: been
-395: she
+407: one
+392: she
 387: no
 379: have
 359: would
 354: out
-344: an
+343: an
 341: said
-334: what
+329: what
 318: up
 318: when
 307: even
 296: are
 292: this
-289: party
 289: them
+284: party
 277: into
 240: their
 238: if
-232: we
 229: any
 228: did
 228: only
 225: like
 223: down
 210: more
+210: we
 208: so
-205: brien
+205: o'brien
 203: time
 198: thought
 
 
 Top 32 interesting bigrams:
-79: big brother
+72: big brother
 53: do you
-51: if you
 48: you could
+47: if you
 40: thought police
-39: old man
+36: old man
 30: inner party
-30: when you
-29: you can
-29: you know
+29: when you
+28: you know
 27: party member
 25: all over
+24: you can
 23: years ago
-22: mr charrington
 21: above all
 21: know what
 21: no longer
@@ -95,17 +94,18 @@ Top 32 interesting bigrams:
 21: tell you
 20: so far
 19: some kind
-19: you re
 18: could see
 18: even if
 18: even when
 18: party members
-18: what you
 17: how many
 17: human being
+17: what you
 17: your own
 16: any rate
 16: first time
+16: her face
+15: any case
 
 Top 16 interesting trigrams:
 13: two minutes hate
@@ -117,10 +117,10 @@ Top 16 interesting trigrams:
 8: how many fingers
 8: junior anti sex
 7: place where there
-7: you know what
 6: if you want
 6: me three farthings
-6: mr charrington shop
+6: mr charrington's shop
 6: owe me three
+6: you know what
 6: you owe me
 5: all three powers
