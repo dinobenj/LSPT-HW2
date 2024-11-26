@@ -1,10 +1,10 @@
 Number of valid documents: 1
 Number of words : 101352
 Number of unique words : 8900
-Number of "interesting" bigrams : 31676
-Number of unique "interesting" bigrams : 24640
-Number of "interesting" trigrams : 16161
-Number of unique "interesting" trigrams : 15501
+Number of "interesting" bigrams : 30151
+Number of unique "interesting" bigrams : 23232
+Number of "interesting" trigrams : 14379
+Number of unique "interesting" trigrams : 13753
 
 Top 64 words:
 6522 the
@@ -81,8 +81,8 @@ Top 32 interesting bigrams:
 36 old man
 30 inner party
 29 when you
-28 you know
 27 party member
+27 you know
 25 all over
 24 you can
 23 years ago

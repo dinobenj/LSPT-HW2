@@ -97,14 +97,14 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
     Ok(words)
 }
 
-fn get_bigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>> {
+fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut bigram_count = HashMap::new();
     for i in 0..words.len() - 1 {
         let bigram = format!("{} {}", words[i], words[i + 1]);
 
         let mut bad: bool = false;
         for word in STOP_WORDS {
-            if word == words[i] || word == words[i+1] {
+            if *word == words[i] || *word == words[i+1] {
                 bad = true;
                 break;
             }
@@ -119,13 +119,13 @@ fn get_bigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>
     Ok(bigram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
-fn get_trigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>> {
+fn get_trigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut trigram_count = HashMap::new();
     for i in 0..words.len() - 2 {
         let trigram = format!("{} {} {}", words[i], words[i + 1], words[i + 2]);
         let mut bad: bool = false;
         for word in STOP_WORDS {
-            if word == words[i] || word == words[i+1] || word == words[i+2] {
+            if *word == words[i] || *word == words[i+1] || *word == words[i+2] {
                 bad = true;
                 break;
             }
@@ -179,8 +179,8 @@ fn main() -> io::Result<()> {
             *cnt+= 1;
         }
 
-        let file_bigram_occurrences = get_bigram_occurrences(&file_filtered_words)?;
-        let file_trigram_occurrences = get_trigram_occurrences(&file_filtered_words)?;
+        let file_bigram_occurrences = get_bigram_occurrences(&file_words)?;
+        let file_trigram_occurrences = get_trigram_occurrences(&file_words)?;
 
         for (key, value) in file_bigram_occurrences.clone() {
             let count = bigram_occurrences.entry(key).or_insert(0);
@@ -208,12 +208,12 @@ fn main() -> io::Result<()> {
     }
 
     println!("Number of valid documents: {}", valid_documents);
-    println!("Number of words : {}", words.len());
-    println!("Number of unique words : {}", word_occurrences.len());
-    println!("Number of \"interesting\" bigrams : {}", bigram_count);
-    println!("Number of unique \"interesting\" bigrams : {}", bigram_occurrences.len());
-    println!("Number of \"interesting\" trigrams : {}", trigram_count);
-    println!("Number of unique \"interesting\" trigrams : {}\n", trigram_occurrences.len());
+    println!("Number of words: {}", words.len());
+    println!("Number of unique words: {}", word_occurrences.len());
+    println!("Number of \"interesting\" bigrams: {}", bigram_count);
+    println!("Number of unique \"interesting\" bigrams: {}", bigram_occurrences.len());
+    println!("Number of \"interesting\" trigrams: {}", trigram_count);
+    println!("Number of unique \"interesting\" trigrams: {}\n", trigram_occurrences.len());
 
     // sort
     let mut words_sorted: Vec<_> = word_occurrences.into_iter().collect();
@@ -241,30 +241,21 @@ fn main() -> io::Result<()> {
         2..=31 => println!("Top {} interesting bigrams:", bigram_sorted.len()),
         _ => println!("Top 32 interesting bigrams:"),
     }
+
     for (bigram, count) in bigram_sorted.iter().take(32) {
         println!("{} {}", count, bigram);
     }
-    println!(""); 
-
-    /* 
-    for (bigram, count) in bigram_sorted {
-        println!("{} {}", count, bigram);
-    }
-    println!("");
-    */
+    println!("");   
 
     match trigram_sorted.len() {
         1 => println!("Top 1 interesting trigram:"),
         2..=15 => println!("Top {} interesting trigrams:", trigram_sorted.len()),
         _ => println!("Top 16 interesting trigrams:"),
     }
-    /*
-    for(trigram, count) in trigram_sorted {
-        println!("{} {}", count, trigram);
-    } */
+
     for(trigram, count) in trigram_sorted.iter().take(16) {
         println!("{} {}", count, trigram);
-    }
+    } 
 
     Ok(())
 }
