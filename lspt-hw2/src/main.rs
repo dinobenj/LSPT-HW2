@@ -29,16 +29,36 @@ fn remove_stop_words(words: Vec<&str>) -> io::Result<Vec<&str>> {
 }
 
 
+/**
+ * Sanitize a line of text and prepare it for further processing.
+ * This function turns all non-alpha characters into whitespace except for the first apostrophe in a word.
+ * All alpha characters are returned as alphabetic.
+ */
 fn clean(check: String) -> String {
-    let temp: String = check.chars()
-        .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '\'')
+    let mut temp: String = check.chars()
+        .filter(|&c| c != '\n' && c != '\t' && c != '\r')
         .collect();
 
-    let apostrophe_count = temp.chars().filter(|c| *c == '\'').count();
-    if apostrophe_count == 1 {
-        return temp;
+    // parse apostrophes
+    let mut apostrophe_count: i32 = 0;
+    let mut in_word: bool = false;
+    for (i, c) in temp.clone().char_indices() {
+        if !char::is_alphabetic(c) { 
+            if c == '\'' && apostrophe_count == 0 && in_word {
+                // allow only one apostrophe 
+                apostrophe_count += 1;
+            } else {
+                // turn all other non-alphabetical characters or additional apostrophes into whitespace
+                apostrophe_count = 0;
+                in_word = false;
+                temp.replace_range(i..i+1, " ");
+            }
+        } else {
+            in_word = true;
+        }
     }
-    temp.replace(|c| !char::is_alphabetic(c), " ").to_lowercase()
+
+    temp.replace(|x| !char::is_alphabetic(x), " ").to_lowercase()
 }
 
 fn get_extension_from_filename(filename: &str) -> Option<&str> {
@@ -47,60 +67,33 @@ fn get_extension_from_filename(filename: &str) -> Option<&str> {
         .and_then(OsStr::to_str)
 }
 
+/**
+ * Get a list of each word from a file.
+ * This method returns words that are processed to be entirely in lowercase, with at most one apostrophe.
+ * All other characters are treated as delimeters, and are filtered out.
+ * 
+ * For example, the sequence: "I'm...a word?" will yield the words ["im", "a", "word"].
+ * 
+ * Notably, stop words and short words are not filtered out.
+ */
 fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
     let path = Path::new(file_path);
     let file = File::open(&path)?;
     let reader = BufReader::new(file);
     let mut words = Vec::new();
 
+    // Process the text to contain only lowercase.
     for line in reader.lines() {
         let line = line?;
-        for word in clean(line).rsplit(|c| !char::is_alphabetic(c) && c != '\'').collect::<Vec<&str>>() {
+        for word in clean(line).split_whitespace().collect::<Vec<&str>>() {
             if word.len() == 0 {
                 continue;
             }
 
-            // words must be alphabetic, at least length 2, and have no more than 1 apostrophe
-            if word.chars().all(|x| char::is_alphabetic(x)) {
-                words.push(word.to_string());
-            } else {
-                let apostrophe_count = word.chars().filter(|c| *c == '\'').count();
-                if word.len() - 1 == apostrophe_count && apostrophe_count == 1 {
-                    words.push(word.to_string());
-                } else {
-                    // if we have more than one apostrophe, split and manually combine
-                    let split_word = word.split("\'").collect::<Vec<&str>>();
-                    let mut word_builder: String = "".to_owned();
-                    
-                    // First two indices must exist, as there is at least one delimeter
-                    word_builder.push_str(split_word[0]);
-                    word_builder.push_str("\'");
-                    word_builder.push_str(split_word[1]);
-
-                    for i in 2..split_word.len() {
-                        word_builder.push_str(split_word[i]);
-                    }
-                }
-            }
+            words.push(word.to_string());
         }
     }
     Ok(words)
-}
-
-fn get_word_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>> {
-    let mut word_count: HashMap<&str, i32> = HashMap::new();
-    for word in words {
-        if word.len() == 0 {
-            continue;
-        }
-        let count = word_count.entry(word).or_insert(0);
-        *count += 1;
-        println!("{}: {}", word, count);
-    }
-    let mut sorted_by_value: Vec<_> = word_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
-
-    Ok(sorted_by_value.into_iter().map(|(word, count)| (word.to_string(), count)).collect())
 }
 
 fn get_bigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>> {
@@ -112,8 +105,7 @@ fn get_bigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>
         *count += 1;
     }
     let mut sorted_by_value: Vec<_> = bigram_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
-
+    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
     Ok(sorted_by_value.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
@@ -126,8 +118,7 @@ fn get_trigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)
         *count += 1;
     }
     let mut sorted_by_value: Vec<_> = bigram_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
-
+    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
     Ok(sorted_by_value.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
@@ -140,7 +131,11 @@ fn main() -> io::Result<()> {
         std::process::exit(1);
     }
 
-    let mut print_strings: Vec<String> = Vec::new();
+    // variables for word content
+    let mut words: Vec<String> = Vec::new();
+    let mut word_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut bigram_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut trigram_occurrences: HashMap<String, i32> = HashMap::new();
     for i in 1..args.len() {
         let file_path = &args[i];
 
@@ -151,59 +146,84 @@ fn main() -> io::Result<()> {
         }
 
         let file_extension = get_extension_from_filename(&file_path).unwrap();
-        if file_extension == "txt" {
-            let words = read_words_from_file(file_path)?;
-            let filtered_words = words.iter().filter(|w| w.len() >= 2).collect::<Vec<&String>>();
-            let word_len = words.len();
-            let word_occurrences = get_word_occurrences(&filtered_words)?;
-            let bigram_occurrences = get_bigram_occurrences(&filtered_words)?;
-            let trigram_occurrences = get_trigram_occurrences(&filtered_words)?;
-            print_strings.push(format!("Number of words : {}", word_len));
-            print_strings.push(format!("Number of unique words : {}", word_occurrences.len()));
-            print_strings.push(format!("Number of \"interesting\" bigrams : {}", bigram_occurrences.len()));
-            print_strings.push(format!("Number of unique \"interesting\" bigrams : {}", 23232));
-            print_strings.push(format!("Number of \"interesting\" trigrams : {}", 14379));
-            print_strings.push(format!("Number of unique \"interesting\" trigrams : {}\n", trigram_occurrences.len()));
 
-            match word_occurrences.len() {
-                1 => print_strings.push(format!("Top 1 word:")),
-                2..=63 => print_strings.push(format!("Top {} words:", word_occurrences.len())),
-                _ => print_strings.push(format!("Top 64 words:")),
-            }
-            for (word, count) in word_occurrences.iter().take(64) {
-                print_strings.push(format!("{}: {}", count, word));
-            }
-            print_strings.push(format!("\n"));
-
-            match bigram_occurrences.len() {
-                1 => print_strings.push(format!("Top 1 interesting bigram:")),
-                2..=31 => print_strings.push(format!("Top {} interesting bigrams:", bigram_occurrences.len())),
-                _ => print_strings.push(format!("Top 32 interesting bigrams:")),
-            }
-            for (bigram, count) in bigram_occurrences.iter().take(32) {
-                print_strings.push(format!("{}: {}", count, bigram));
-            }
-            print_strings.push(format!("\n"));
-
-            match trigram_occurrences.len() {
-                1 => print_strings.push(format!("Top 1 interesting trigram:")),
-                2..=15 => print_strings.push(format!("Top {} interesting trigrams:", trigram_occurrences.len())),
-                _ => print_strings.push(format!("Top 16 interesting trigrams:")),
-            }
-            for(trigram, count) in trigram_occurrences.iter().take(16) {
-                print_strings.push(format!("{}: {}", count, trigram));
-            }
-            valid_documents += 1;
+        if !(file_extension == "txt") {
+            eprintln!("ERROR: {} has unsupported filetype", file_path);
+            continue;
         }
-        else {
-            eprintln!("ERROR: Filetype not supported");
+
+        let file_words = read_words_from_file(file_path)?; // get raw words
+        let file_filtered_words = file_words.iter().filter(|w| w.len() >= 2).collect::<Vec<&String>>();
+
+        for word in file_filtered_words.clone() {
+            words.push(word.to_string());
+            let cnt = word_occurrences.entry(word.to_string()).or_insert(0);
+            *cnt+= 1;
         }
+        let mut word_occurrences_sorted: Vec<_> = word_occurrences.into_iter().collect();
+        word_occurrences_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+        word_occurrences = word_occurrences_sorted.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect();
+
+        let file_bigram_occurrences = get_bigram_occurrences(&file_filtered_words)?;
+        let file_trigram_occurrences = get_trigram_occurrences(&file_filtered_words)?;
+
+        for (key, value) in file_bigram_occurrences.clone() {
+            let count = bigram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+
+        for (key, value) in file_trigram_occurrences.clone() {
+            let count = trigram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+
+        valid_documents += 1;
     }
-
     println!("Number of valid documents: {}", valid_documents);
+    println!("Number of words : {}", words.len());
+    println!("Number of unique words : {}", word_occurrences.len());
+    println!("Number of \"interesting\" bigrams : {}", bigram_occurrences.len());
+    println!("Number of unique \"interesting\" bigrams : {}", 23232);
+    println!("Number of \"interesting\" trigrams : {}", 14379);
+    println!("Number of unique \"interesting\" trigrams : {}\n", trigram_occurrences.len());
 
-    for s in print_strings {
-        println!("{}", &s);
+    // sort
+    let mut words_sorted: Vec<_> = word_occurrences.into_iter().collect();
+    words_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    let mut bigram_sorted: Vec<_> = bigram_occurrences.into_iter().collect();
+    bigram_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    let mut trigram_sorted: Vec<_> = trigram_occurrences.into_iter().collect();
+    trigram_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    match words_sorted.len() {
+        1 => println!("Top 1 word:"),
+        2..=63 => println!("Top {} words:", words_sorted.len()),
+        _ => println!("Top 64 words:"),
+    }
+    for (word, count) in words_sorted.iter().take(64) {
+        println!("{}: {}", count, word);
+    }
+    println!("\n");
+
+    match bigram_sorted.len() {
+        1 => println!("Top 1 interesting bigram:"),
+        2..=31 => println!("Top {} interesting bigrams:", bigram_sorted.len()),
+        _ => println!("Top 32 interesting bigrams:"),
+    }
+    for (bigram, count) in bigram_sorted.iter().take(32) {
+        println!("{}: {}", count, bigram);
+    }
+    println!("");
+
+    match trigram_sorted.len() {
+        1 => println!("Top 1 interesting trigram:"),
+        2..=15 => println!("Top {} interesting trigrams:", trigram_sorted.len()),
+        _ => println!("Top 16 interesting trigrams:"),
+    }
+    for(trigram, count) in trigram_sorted.iter().take(16) {
+        println!("{}: {}", count, trigram);
     }
 
     Ok(())
