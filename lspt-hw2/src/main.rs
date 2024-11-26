@@ -101,9 +101,7 @@ fn get_bigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>
         let count = bigram_count.entry(bigram).or_insert(0);
         *count += 1;
     }
-    let mut sorted_by_value: Vec<_> = bigram_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-    Ok(sorted_by_value.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
+    Ok(bigram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
 fn get_trigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)>> {
@@ -123,9 +121,8 @@ fn get_trigram_occurrences(words: &Vec<&String>) -> io::Result<Vec<(String, i32)
         let count = trigram_count.entry(trigram).or_insert(0);
         *count += 1;
     }
-    let mut sorted_by_value: Vec<_> = trigram_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-    Ok(sorted_by_value.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
+
+    Ok(trigram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
 fn main() -> io::Result<()> {
@@ -185,12 +182,25 @@ fn main() -> io::Result<()> {
 
         valid_documents += 1;
     }
+
+    // count number of bigram / trigrams
+    let mut bigram_count: i32 = 0;
+    let mut trigram_count: i32 = 0;
+    
+    for (_, count) in bigram_occurrences.clone() {
+        bigram_count += count;
+    }
+
+    for (_, count) in trigram_occurrences.clone() {
+        trigram_count += count;
+    }
+
     println!("Number of valid documents: {}", valid_documents);
     println!("Number of words : {}", words.len());
     println!("Number of unique words : {}", word_occurrences.len());
-    println!("Number of \"interesting\" bigrams : {}", bigram_occurrences.len());
-    println!("Number of unique \"interesting\" bigrams : {}", 23232);
-    println!("Number of \"interesting\" trigrams : {}", 14379);
+    println!("Number of \"interesting\" bigrams : {}", bigram_count);
+    println!("Number of unique \"interesting\" bigrams : {}", bigram_occurrences.len());
+    println!("Number of \"interesting\" trigrams : {}", trigram_count);
     println!("Number of unique \"interesting\" trigrams : {}\n", trigram_occurrences.len());
 
     // sort
