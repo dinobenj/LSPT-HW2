@@ -87,7 +87,7 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
 
     // Process each word, line by line, then add to word list.
     for line in reader.lines() {
-        let line:String = String::from_utf8_lossy(line?.as_bytes()).to_string();
+        let line = line?;
         for word in clean(line).split_whitespace().collect::<Vec<&str>>() {
             if word.len() == 0 {
                 continue;
