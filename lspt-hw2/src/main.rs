@@ -14,6 +14,7 @@ const STOP_WORDS: &'static[&'static str] = &[
     "us", "percent", "up", "one", "people",
 ];
 
+
 /**
  * Sanitize a line of text and prepare it for further processing.
  * This function turns all non-alpha characters into whitespace except for the first apostrophe in a word.
@@ -21,10 +22,8 @@ const STOP_WORDS: &'static[&'static str] = &[
  */
 fn clean(check: String) -> String {
     let mut temp: String = check.chars()
-        .filter(|&c| c != '\n' && c != '\t' && c != '\r')
+        .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '«' && c != '»' && c != '×')
         .collect();
-
-    temp = temp.replace(|c: char| !c.is_ascii(), " ");
 
     // parse entire line
     let mut apostrophe_count: i32 = 0;
@@ -32,7 +31,7 @@ fn clean(check: String) -> String {
     let mut last_apostrophe: bool = false;
 
     for (i, c) in temp.clone().char_indices() {
-        if !char::is_ascii_alphabetic(&c) { 
+        if !char::is_alphabetic(c) { 
             if c == '\'' && apostrophe_count == 0 && in_word {
                 // allow only one apostrophe 
                 apostrophe_count += 1;
@@ -59,6 +58,7 @@ fn clean(check: String) -> String {
         temp.replace_range(temp.len()-1..temp.len(), " ");
     }
 
+
     temp.to_lowercase()
 }
 
@@ -82,7 +82,7 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
     let file = File::open(&path)?;
     let reader = BufReader::new(file);
     let mut words = Vec::new();
-    
+
     // Process each word, line by line, then add to word list.
     for line in reader.lines() {
         let line:String = String::from_utf8_lossy(line?.as_bytes()).to_string();
@@ -99,6 +99,11 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
 
 fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut bigram_count = HashMap::new();
+
+    if words.len() == 0 {
+        return Ok(Vec::new());
+    }
+
     for i in 0..words.len() - 1 {
         let bigram = format!("{} {}", words[i], words[i + 1]);
 
@@ -121,6 +126,11 @@ fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>>
 
 fn get_trigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut trigram_count = HashMap::new();
+
+    if words.len() == 0 {
+        return Ok(Vec::new());
+    }
+
     for i in 0..words.len() - 2 {
         let trigram = format!("{} {} {}", words[i], words[i + 1], words[i + 2]);
         let mut bad: bool = false;
@@ -234,7 +244,7 @@ fn main() -> io::Result<()> {
     for (key, value) in words_sorted.iter().take(64) {
         println!("{} {}", value, key);
     } 
-    println!("");   
+    println!("");
 
     match bigram_sorted.len() {
         1 => println!("Top 1 interesting bigram:"),
@@ -245,7 +255,7 @@ fn main() -> io::Result<()> {
     for (bigram, count) in bigram_sorted.iter().take(32) {
         println!("{} {}", count, bigram);
     }
-    println!("");
+    println!("");   
 
     match trigram_sorted.len() {
         1 => println!("Top 1 interesting trigram:"),
@@ -255,7 +265,7 @@ fn main() -> io::Result<()> {
 
     for(trigram, count) in trigram_sorted.iter().take(16) {
         println!("{} {}", count, trigram);
-    }
-    
+    } 
+
     Ok(())
 }
