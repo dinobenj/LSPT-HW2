@@ -25,6 +25,8 @@ fn clean(check: String) -> String {
         .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '«' && c != '»' && c != '×')
         .collect();
 
+    temp = temp.replace(|c: char| !c.is_ascii(), " ");
+
     // parse entire line
     let mut apostrophe_count: i32 = 0;
     let mut in_word: bool = false;
@@ -99,7 +101,6 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
 
 fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut bigram_count = HashMap::new();
-
     if words.len() == 0 {
         return Ok(Vec::new());
     }
