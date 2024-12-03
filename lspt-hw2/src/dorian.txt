@@ -8558,7 +8558,7 @@ is surely the desire of every one.
 
 Simpkin's
 
-THIN PAPER EDITION
+THIN PAPER EDITIONapt install pkg-config libssl-dev build-essential
 
 of
 
