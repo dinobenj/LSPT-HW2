@@ -25,6 +25,8 @@ fn clean(check: String) -> String {
         .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '«' && c != '»' && c != '×' && c != '°')
         .collect();
 
+    temp = temp.replace(|c: char| !c.is_ascii(), " ");
+
     // parse entire line
     let mut apostrophe_count: i32 = 0;
     let mut in_word: bool = false;
@@ -85,7 +87,7 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
 
     // Process each word, line by line, then add to word list.
     for line in reader.lines() {
-        let line:String = String::from_utf8_lossy(line?.as_bytes()).to_string();
+        let line = line?;
         for word in clean(line).split_whitespace().collect::<Vec<&str>>() {
             if word.len() == 0 {
                 continue;
@@ -99,6 +101,10 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
 
 fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut bigram_count = HashMap::new();
+    if words.len() == 0 {
+        return Ok(Vec::new());
+    }
+
     for i in 0..words.len() - 1 {
         let bigram = format!("{} {}", words[i], words[i + 1]);
 
@@ -121,6 +127,11 @@ fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>>
 
 fn get_trigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut trigram_count = HashMap::new();
+
+    if words.len() == 0 {
+        return Ok(Vec::new());
+    }
+
     for i in 0..words.len() - 2 {
         let trigram = format!("{} {} {}", words[i], words[i + 1], words[i + 2]);
         let mut bad: bool = false;

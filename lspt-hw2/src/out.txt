@@ -1,125 +1,125 @@
 Number of valid documents: 1
-Number of words : 101352
-Number of unique words : 8900
-Number of "interesting" bigrams : 30151
-Number of unique "interesting" bigrams : 23232
-Number of "interesting" trigrams : 14379
-Number of unique "interesting" trigrams : 13753
+Number of words: 230
+Number of unique words: 153
+Number of "interesting" bigrams: 119
+Number of unique "interesting" bigrams: 116
+Number of "interesting" trigrams: 103
+Number of unique "interesting" trigrams: 103
 
 Top 64 words:
-6522 the
-3493 of
-2445 and
-2348 to
-2316 was
-1964 he
-1868 in
-1863 it
-1474 that
-1344 had
-1086 his
-970 you
-850 not
-792 with
-728 as
-665 at
-665 for
-657 be
-641 but
-637 they
-636 were
-631 is
-615 on
-545 there
-513 him
-472 which
-467 or
-455 winston
-436 by
-426 all
-425 could
-422 from
-421 her
-416 been
-407 one
-392 she
-387 no
-379 have
-359 would
-354 out
-344 an
-341 said
-329 what
-318 up
-318 when
-307 even
-296 are
-292 this
-289 them
-284 party
-277 into
-240 their
-238 if
-229 any
-228 did
-228 only
-225 like
-223 down
-210 more
-210 we
-208 so
-205 o'brien
-203 time
-198 thought
+19 the
+9 of
+8 it
+8 was
+6 and
+3 at
+3 face
+3 for
+3 his
+3 in
+3 one
+3 to
+3 winston
+3 with
+3 you
+2 about
+2 an
+2 enormous
+2 from
+2 had
+2 lift
+2 on
+2 part
+2 poster
+2 quickly
+2 times
+2 wall
+1 above
+1 along
+1 ankle
+1 april
+1 are
+1 been
+1 beneath
+1 best
+1 big
+1 black
+1 boiled
+1 breast
+1 bright
+1 brother
+1 cabbage
+1 caption
+1 chapter
+1 chin
+1 clocks
+1 cold
+1 coloured
+1 contrived
+1 current
+1 cut
+1 day
+1 daylight
+1 depicted
+1 display
+1 doors
+1 drive
+1 during
+1 dust
+1 each
+1 economy
+1 effort
+1 electric
+1 end
 
 Top 32 interesting bigrams:
-72 big brother
-53 do you
-48 you could
-47 if you
-40 thought police
-36 old man
-30 inner party
-29 when you
-27 party member
-27 you know
-25 all over
-24 you can
-23 years ago
-21 above all
-21 know what
-21 no longer
-21 so long
-21 tell you
-20 so far
-19 some kind
-18 could see
-18 even if
-18 even when
-18 party members
-17 how many
-17 human being
-17 what you
-17 your own
-16 any rate
-16 first time
-16 her face
-15 any case
+2 face face
+2 winston winston
+2 you you
+1 above along
+1 ankle april
+1 beneath best
+1 best big
+1 big black
+1 black boiled
+1 boiled breast
+1 breast bright
+1 bright brother
+1 brother cabbage
+1 cabbage caption
+1 caption chapter
+1 chapter chin
+1 chin clocks
+1 clocks cold
+1 cold coloured
+1 coloured contrived
+1 contrived current
+1 current cut
+1 cut day
+1 day daylight
+1 daylight depicted
+1 depicted display
+1 display doors
+1 doors drive
+1 drive during
+1 during dust
+1 dust each
+1 each economy
 
 Top 16 interesting trigrams:
-13 two minutes hate
-12 do you know
-11 three super states
-9 do you remember
-9 made no difference
-8 anti sex league
-8 how many fingers
-8 junior anti sex
-7 place where there
-6 if you want
-6 me three farthings
-6 mr charrington's shop
-6 owe me three
-6 you know what
-6 you owe me
-5 all three powers
+1 beneath best big
+1 best big black
+1 big black boiled
+1 black boiled breast
+1 boiled breast bright
+1 breast bright brother
+1 bright brother cabbage
+1 brother cabbage caption
+1 cabbage caption chapter
+1 caption chapter chin
+1 chapter chin clocks
+1 chin clocks cold
+1 clocks cold coloured
+1 cold coloured contrived
+1 coloured contrived current
+1 contrived current cut
