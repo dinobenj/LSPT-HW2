@@ -78,6 +78,31 @@ fn get_word_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     Ok(sorted_by_value.into_iter().map(|(word, count)| (word.to_string(), count)).collect())
 }
 
+// TODO
+fn get_ngram_occurrences(words: &Vec<String>, n: i32) -> io::Result<Vec<(String, i32)>> {
+    let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
+
+    let mut ngram_count = HashMap::new();
+    for i in 0..(new_words.len() - (n-1) as usize) { // idk if theres a better way to do this casting
+        // starting at each word, create a new n-gram
+        let mut ngram_array = Vec::new();
+        for j in 0..n as usize {
+            // how to fix pls help
+            let copy = words[i+j];
+            ngram_array.push(copy);
+        }
+
+        let ngram = ngram_array.join(" ");
+        let count = ngram_count.entry(ngram).or_insert(0);
+        *count += 1;
+    }
+
+    let mut sorted_by_value: Vec<_> = ngram_count.into_iter().collect();
+    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
+
+    Ok(sorted_by_value.into_iter().map(|(ngram, count)| (ngram.clone(), count)).collect())
+} 
+
 fn get_bigram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
     let mut bigram_count = HashMap::new();
