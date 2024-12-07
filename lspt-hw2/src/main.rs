@@ -295,7 +295,6 @@ fn main() -> io::Result<()> {
     for (_, count) in pentagram_occurrences.clone() {
         pentagram_count += count;
     }
-    println!("poop");
     println!("Number of valid documents: {}", valid_documents);
     println!("Number of words: {}", words.len());
     println!("Number of unique words: {}", word_occurrences.len());
@@ -363,8 +362,8 @@ fn main() -> io::Result<()> {
         _ => println!("Top 16 interesting quadgrams:"),
     }
 
-    for(trigram, count) in quadgram_sorted.iter().take(16) {
-        println!("{} {}", count, trigram);
+    for(quadgram, count) in quadgram_sorted.iter().take(16) {
+        println!("{} {}", count, quadgram);
     }
     println!("");
 
@@ -374,8 +373,8 @@ fn main() -> io::Result<()> {
         _ => println!("Top 8 interesting pentagrams:"),
     }
 
-    for(trigram, count) in pentagram_sorted.iter().take(8) {
-        println!("{} {}", count, trigram);
+    for(pentagram, count) in pentagram_sorted.iter().take(8) {
+        println!("{} {}", count, pentagram);
     }
 
     
