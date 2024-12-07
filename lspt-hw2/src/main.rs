@@ -5,24 +5,20 @@ use std::ffi::OsStr;
 use std::collections::HashMap;
 use std::env;
 
-/*
-Refactor 1:
-*/
-/*
-Refactor 2:
-*/
-/*
-Refactor 3:
-*/
-/*
-Refactor 4:
-*/
-/*
-Refactor 5:
-*/
-/*
-Refactor 6:
-*/
+/**
+ * Refactor 1: Extract Function (n-grams)
+ * 
+ * Refactor 2: Rename variable: 
+ * 
+ * Refactor 3: Replace Temp with Query: 
+ * 
+ * Refactor 4: 
+ * 
+ * Refactor 5: 
+ * 
+ * Refactor 6: 
+ * 
+ */
 
 const STOP_WORDS: &'static[&'static str] = &[
     "the", "of", "to", "a", "and", "in", "said", "for", "that", "was", 
@@ -118,6 +114,7 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
     Ok(words)
 }
 
+/*
 fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut bigram_count = HashMap::new();
     if words.len() == 0 {
@@ -168,7 +165,7 @@ fn get_trigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>
     }
 
     Ok(trigram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
-}
+} */
 
 fn get_ngram_occurances(words: &Vec<String>, n: i32) -> io::Result<Vec<(String, i32)>> {
     let mut ngram_count = HashMap::new();
@@ -187,15 +184,11 @@ fn get_ngram_occurances(words: &Vec<String>, n: i32) -> io::Result<Vec<(String, 
 
         let mut bad: bool = false;
         for word in STOP_WORDS {
-            if *word == words[i] || *word == words[i+1] || *word == words[i+2] {
-                bad = true;
-                break;
-            }
-        }
-        for j in 0..n {
-            if words[i+j as usize].len() < 2 {
-                bad = true;
-                break;
+            for j in 0..n {
+                if words[i+j as usize].len() < 2 || words[i+j as usize] == *word {
+                    bad = true;
+                    break;
+                }
             }
         }
         if bad {
@@ -250,8 +243,8 @@ fn main() -> io::Result<()> {
             *cnt+= 1;
         }
 
-        let file_bigram_occurrences = get_bigram_occurrences(&file_words)?;
-        let file_trigram_occurrences = get_trigram_occurrences(&file_words)?;
+        let file_bigram_occurrences = get_ngram_occurances(&file_words, 2)?;
+        let file_trigram_occurrences = get_ngram_occurances(&file_words, 3)?;
         let file_quadgram_occurrences = get_ngram_occurances(&file_words, 4)?;
         let file_pentagram_occurrences = get_ngram_occurances(&file_words, 5)?;
 
@@ -376,9 +369,6 @@ fn main() -> io::Result<()> {
     for(pentagram, count) in pentagram_sorted.iter().take(8) {
         println!("{} {}", count, pentagram);
     }
-
-    
-    
 
     Ok(())
 }
