@@ -2,50 +2,85 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 use std::ffi::OsStr;
-use std::collections::{HashMap, HashSet};
-
+use std::collections::HashMap;
+use std::env;
 
 /*
-
-
-
-
+Refactor 1:
+*/
+/*
+Refactor 2:
+*/
+/*
+Refactor 3:
+*/
+/*
+Refactor 4:
+*/
+/*
+Refactor 5:
+*/
+/*
+Refactor 6:
 */
 
-fn remove_stop_words(words: Vec<&str>) -> io::Result<Vec<&str>> {
-    let stop_words: HashSet<&str> = [
-        "the", "of", "to", "a", "and", "in", "said", "for", "that", "was", 
-        "on", "he", "is", "with", "at", "by", "it", "from", "as", "be", 
-        "were", "an", "have", "his", "but", "has", "are", "not", "who", 
-        "they", "its", "had", "will", "would", "about", "i", "been", 
-        "this", "their", "new", "or", "which", "we", "more", "after", 
-        "us", "percent", "up", "one", "people", "st"
-    ]
-    .iter()
-    .cloned()
-    .collect();
+const STOP_WORDS: &'static[&'static str] = &[
+    "the", "of", "to", "a", "and", "in", "said", "for", "that", "was", 
+    "on", "he", "is", "with", "at", "by", "it", "from", "as", "be", 
+    "were", "an", "have", "his", "but", "has", "are", "not", "who", 
+    "they", "its", "had", "will", "would", "about", "i", "been", 
+    "this", "their", "new", "or", "which", "we", "more", "after", 
+    "us", "percent", "up", "one", "people",
+];
 
-    let filtered_words: Vec<&str> = words
-        .into_iter()
-        .filter(|word| !stop_words.contains(word))
-        .collect();
 
-    Ok(filtered_words)
-
-}
-
-///```
-/// clean removes newline characters, tabs, and quotations from the input string,
-/// Transforms it into lowercase, then 
-/// 
-/// 
-/// 
-/// ```
+/**
+ * Sanitize a line of text and prepare it for further processing.
+ * This function turns all non-alpha characters into whitespace except for the first apostrophe in a word.
+ * All alpha characters are returned as alphabetic.
+ */
 fn clean(check: String) -> String {
-    let temp: String = check.chars()
-        .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '\'')
+    let mut temp: String = check.chars()
+        .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '«' && c != '»' && c != '×')
         .collect();
-    temp.replace(|c| !char::is_alphanumeric(c), " ").to_lowercase()
+
+    temp = temp.replace(|c: char| !c.is_ascii(), " ");
+
+    // parse entire line
+    let mut apostrophe_count: i32 = 0;
+    let mut in_word: bool = false;
+    let mut last_apostrophe: bool = false;
+
+    for (i, c) in temp.clone().char_indices() {
+        if !char::is_alphabetic(c) { 
+            if c == '\'' && apostrophe_count == 0 && in_word {
+                // allow only one apostrophe 
+                apostrophe_count += 1;
+                last_apostrophe = true;
+            } else {
+                // turn all other non-alphabetical characters or additional apostrophes into whitespace
+                if last_apostrophe {
+                    temp.replace_range(i-1..i, " ");
+                    last_apostrophe = false;
+                }
+                apostrophe_count = 0;
+                in_word = false;
+                temp.replace_range(i..i+1, " ");
+            }
+        } else {
+            if last_apostrophe {
+                last_apostrophe = false;
+            }
+            in_word = true;
+        }
+    }
+
+    if last_apostrophe {
+        temp.replace_range(temp.len()-1..temp.len(), " ");
+    }
+
+
+    temp.to_lowercase()
 }
 
 fn get_extension_from_filename(filename: &str) -> Option<&str> {
@@ -54,187 +89,297 @@ fn get_extension_from_filename(filename: &str) -> Option<&str> {
         .and_then(OsStr::to_str)
 }
 
+/**
+ * Get a list of each word from a file.
+ * This method returns words that are processed to be entirely in lowercase, with at most one apostrophe.
+ * All other characters are treated as delimeters, and are filtered out.
+ * 
+ * For example, the sequence: "I'm...a word?" will yield the words ["i'm", "a", "word"].
+ * 
+ * Notably, stop words and short words are not filtered out.
+ */
 fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
     let path = Path::new(file_path);
     let file = File::open(&path)?;
     let reader = BufReader::new(file);
     let mut words = Vec::new();
 
+    // Process each word, line by line, then add to word list.
     for line in reader.lines() {
         let line = line?;
-        if line.len() < 2 {
-            continue;
-        }
         for word in clean(line).split_whitespace().collect::<Vec<&str>>() {
+            if word.len() == 0 {
+                continue;
+            }
+
             words.push(word.to_string());
         }
     }
     Ok(words)
-
 }
 
-fn get_word_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
-    let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
-    let mut word_count: HashMap<&str, i32> = HashMap::new();
-    for word in new_words {
-        let count = word_count.entry(word).or_insert(0);
-        *count += 1;
-    }
-    let mut sorted_by_value: Vec<_> = word_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
-    Ok(sorted_by_value.into_iter().map(|(word, count)| (word.to_string(), count)).collect())
-}
-
-// TODO
-// fn get_ngram_occurrences(words: &Vec<String>, n: usize) -> io::Result<Vec<(String, i32)>> {
-//     if n == 0 {
-//         return Ok(vec![]);
-//     }
-//     //removes stop words
-//     let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
-//     if new_words.len() < n {
-//         return Ok(vec![]);
-//     }
-
-//     let mut ngram_count = HashMap::new();
-//     //iterates through the words and creates ngrams
-//     for i in 0..=new_words.len() - n {
-//         let ngram = new_words[i..i + n].join(" ");
-//         let count = ngram_count.entry(ngram).or_insert(0);
-//         *count += 1;
-//     }
-//     let mut sorted_by_value: Vec<_> = ngram_count.into_iter().collect();
-//     sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
-
-//     Ok(sorted_by_value.into_iter().map(|(ngram, count)| (ngram.clone(), count)).collect())
-// }
-
-fn get_bigram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
-    let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
+fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
     let mut bigram_count = HashMap::new();
-    for i in 0..new_words.len() - 1 {
-        let bigram = format!("{} {}", new_words[i], new_words[i + 1]);
+    if words.len() == 0 {
+        return Ok(Vec::new());
+    }
+
+    for i in 0..words.len() - 1 {
+        let bigram = format!("{} {}", words[i], words[i + 1]);
+
+        let mut bad: bool = false;
+        for word in STOP_WORDS {
+            if *word == words[i] || *word == words[i+1] {
+                bad = true;
+                break;
+            }
+        }
+        if bad || words[i].len() < 2 || words[i+1].len() < 2 {
+            continue;
+        }
+
         let count = bigram_count.entry(bigram).or_insert(0);
         *count += 1;
     }
-    let mut sorted_by_value: Vec<_> = bigram_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
-
-    Ok(sorted_by_value.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
+    Ok(bigram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
-fn get_trigram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
-    let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
-    let mut bigram_count = HashMap::new();
-    for i in 0..new_words.len() - 2 {
-        let bigram = format!("{} {} {}", new_words[i], new_words[i + 1], new_words[i + 2]);
-        let count = bigram_count.entry(bigram).or_insert(0);
+fn get_trigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
+    let mut trigram_count = HashMap::new();
+
+    if words.len() == 0 {
+        return Ok(Vec::new());
+    }
+
+    for i in 0..words.len() - 2 {
+        let trigram = format!("{} {} {}", words[i], words[i + 1], words[i + 2]);
+        let mut bad: bool = false;
+        for word in STOP_WORDS {
+            if *word == words[i] || *word == words[i+1] || *word == words[i+2] {
+                bad = true;
+                break;
+            }
+        }
+        if bad || words[i].len() < 2 || words[i+1].len() < 2 || words[i+2].len() < 2 {
+            continue;
+        }
+        let count = trigram_count.entry(trigram).or_insert(0);
         *count += 1;
     }
-    let mut sorted_by_value: Vec<_> = bigram_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
 
-    Ok(sorted_by_value.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
+    Ok(trigram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
-fn get_quadgram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
-    let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
-    let mut bigram_count = HashMap::new();
-    for i in 0..new_words.len() - 3 {
-        let bigram = format!("{} {} {} {}", new_words[i], new_words[i + 1], new_words[i + 2], new_words[i + 3]);
-        let count = bigram_count.entry(bigram).or_insert(0);
+fn get_ngram_occurances(words: &Vec<String>, n: i32) -> io::Result<Vec<(String, i32)>> {
+    let mut ngram_count = HashMap::new();
+
+    if words.len() == 0 {
+        return Ok(Vec::new());
+    }
+
+    for i in 0..words.len() - n as usize {
+        let mut ngram = String::new();
+        for j in 0..n {
+            ngram.push_str(&words[i+j as usize]);
+            ngram.push_str(" ");
+        }
+        ngram.pop();
+
+        let mut bad: bool = false;
+        for word in STOP_WORDS {
+            if *word == words[i] || *word == words[i+1] || *word == words[i+2] {
+                bad = true;
+                break;
+            }
+        }
+        for j in 0..n {
+            if words[i+j as usize].len() < 2 {
+                bad = true;
+                break;
+            }
+        }
+        if bad {
+            continue;
+        }
+        let count = ngram_count.entry(ngram).or_insert(0);
         *count += 1;
     }
-    let mut sorted_by_value: Vec<_> = bigram_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
 
-    Ok(sorted_by_value.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
-}
-
-fn get_pentagram_occurences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
-    let new_words = remove_stop_words(words.iter().map(|s| s.as_str()).collect())?;
-    let mut bigram_count = HashMap::new();
-    for i in 0..new_words.len() - 4 {
-        let bigram = format!("{} {} {} {} {}", new_words[i], new_words[i + 1], new_words[i + 2], new_words[i + 3], new_words[i + 4]);
-        let count = bigram_count.entry(bigram).or_insert(0);
-        *count += 1;
-    }
-    let mut sorted_by_value: Vec<_> = bigram_count.into_iter().collect();
-    sorted_by_value.sort_by(|a, b| b.1.cmp(&a.1));
-
-    Ok(sorted_by_value.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
+    Ok(ngram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
 fn main() -> io::Result<()> {
-    let file_path = "/Users/bendennison/Documents/GitHub/LSPT-HW2/lspt-hw2/src/1984.txt"; //dont hardcode-also read multiple files
+    let args: Vec<String> = env::args().collect();
+    let mut valid_documents: i32 = 0;
     
-    let file_extension = get_extension_from_filename(&file_path).unwrap();
-    println!("Reading words from filetype: {}", get_extension_from_filename(file_path).unwrap());
-    if file_extension == "txt" {
-        
-        let words = read_words_from_file(file_path)?;
-        let words_len = words.len();
-        let word_occurences = get_word_occurences(&words)?;
-        let bigram_occurences = get_bigram_occurences(&words)?;
-        let trigram_occurences = get_trigram_occurences(&words)?;
-        let quadgram_occurences = get_quadgram_occurences(&words).unwrap();
-        let pentagram_occurences = get_pentagram_occurences(&words).unwrap();
-
-        let mut bigram_count: i32 = 0;
-        let mut trigram_count: i32 = 0;
-        let mut quadgram_count: i32 = 0;
-        let mut pentagram_count: i32 = 0;
-        
-        for (_, count) in bigram_occurences.clone() {
-            bigram_count += count;
-        }
-
-        for (_, count) in trigram_occurences.clone() {
-            trigram_count += count;
-        }
-
-        for (_, count) in quadgram_occurences.clone() {
-            quadgram_count += count;
-        }
-
-        for (_, count) in pentagram_occurences.clone() {
-            pentagram_count += count;
-        }
-        println!("Number of words : {}", words_len);
-        println!("Number of unique words : {}", word_occurences.len());
-        println!("Number of \"interesting\" bigrams : {}", bigram_count);
-        println!("Number of unique \"interesting\" bigrams : {}", bigram_occurences.len()); //gotta finish this one; I dont know what he means by this
-        println!("Number of \"interesting\" trigrams : {}", trigram_count); //gotta finish this one; I dont know what he means by this
-        println!("Number of unique \"interesting\" trigrams : {}", trigram_occurences.len());
-        println!("");
-
-        println!("Top 128 words:");
-        for (word, count) in word_occurences.iter().take(128) {
-            println!("{}: {}", count, word);
-        }
-        println!("");
-        println!("Top 64 interesting bigrams:");
-        for (bigram, count) in bigram_occurences.iter().take(64) {
-            println!("{}: {}", count, bigram);
-        }
-        println!("");
-        println!("Top 32 interesting trigrams:");
-        for(trigram, count) in trigram_occurences.iter().take(32) {
-            println!("{}: {}", count, trigram);
-        }
-        println!("");
-        println!("Top 16 interesting 4-grams:");
-        for(quadgram, count) in quadgram_occurences.iter().take(16) {
-            println!("{}: {}", count, quadgram);
-        }
-        println!("");
-        println!("Top 8 interesting 5-grams:");
-        for(pentagram, count) in pentagram_occurences.iter().take(8) {
-            println!("{}: {}", count, pentagram);
-        }
+    if args.len() < 2 {
+        eprintln!("ERROR: too few arguments");
+        std::process::exit(1);
     }
-    else {
-        println!("Filetype not supported");
+
+    // variables for word content
+    let mut words: Vec<String> = Vec::new();
+    let mut word_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut bigram_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut trigram_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut quadgram_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut pentagram_occurrences: HashMap<String, i32> = HashMap::new();
+
+    for i in 1..args.len() {
+        let file_path = &args[i];
+
+        // check if path exists
+        if !(Path::new(file_path).exists()) {
+            eprintln!("ERROR: cannot access \"{}\"", file_path);
+            continue;
+        }
+
+        let file_extension = get_extension_from_filename(&file_path).unwrap();
+
+        if !(file_extension == "txt") {
+            eprintln!("ERROR: {} has unsupported filetype", file_path);
+            continue;
+        }
+
+        let file_words = read_words_from_file(file_path)?; // get raw words
+        let file_filtered_words = file_words.iter().filter(|w| w.len() >= 2).collect::<Vec<&String>>();
+
+        for word in file_filtered_words.clone() {
+            words.push(word.to_string());
+            let cnt = word_occurrences.entry(word.to_string()).or_insert(0);
+            *cnt+= 1;
+        }
+
+        let file_bigram_occurrences = get_bigram_occurrences(&file_words)?;
+        let file_trigram_occurrences = get_trigram_occurrences(&file_words)?;
+        let file_quadgram_occurrences = get_ngram_occurances(&file_words, 4)?;
+        let file_pentagram_occurrences = get_ngram_occurances(&file_words, 5)?;
+
+        for (key, value) in file_bigram_occurrences.clone() {
+            let count = bigram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+
+        for (key, value) in file_trigram_occurrences.clone() {
+            let count = trigram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+        for (key, value) in file_quadgram_occurrences.clone() {
+            let count = quadgram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+        for (key, value) in file_pentagram_occurrences.clone() {
+            let count = pentagram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+
+        valid_documents += 1;
     }
+
+    // count number of bigram / trigrams
+    let mut bigram_count: i32 = 0;
+    let mut trigram_count: i32 = 0;
+    let mut quadgram_count: i32 = 0;
+    let mut pentagram_count: i32 = 0;
+    
+    for (_, count) in bigram_occurrences.clone() {
+        bigram_count += count;
+    }
+
+    for (_, count) in trigram_occurrences.clone() {
+        trigram_count += count;
+    }
+    for (_, count) in quadgram_occurrences.clone() {
+        quadgram_count += count;
+    }
+    for (_, count) in pentagram_occurrences.clone() {
+        pentagram_count += count;
+    }
+    println!("poop");
+    println!("Number of valid documents: {}", valid_documents);
+    println!("Number of words: {}", words.len());
+    println!("Number of unique words: {}", word_occurrences.len());
+    println!("Number of \"interesting\" bigrams: {}", bigram_count);
+    println!("Number of unique \"interesting\" bigrams: {}", bigram_occurrences.len());
+    println!("Number of \"interesting\" trigrams: {}", trigram_count);
+    println!("Number of unique \"interesting\" trigrams: {}", trigram_occurrences.len());
+    println!("Number of \"interesting\" quadgrams: {}", quadgram_count);
+    println!("Number of unique \"interesting\" quadgrams: {}", quadgram_occurrences.len());
+    println!("Number of \"interesting\" pentagrams: {}", pentagram_count);
+    println!("Number of unique \"interesting\" pentagrams: {}\n", pentagram_occurrences.len());
+
+    // sort
+    let mut words_sorted: Vec<_> = word_occurrences.into_iter().collect();
+    words_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    let mut bigram_sorted: Vec<_> = bigram_occurrences.into_iter().collect();
+    bigram_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    let mut trigram_sorted: Vec<_> = trigram_occurrences.into_iter().collect();
+    trigram_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    let mut quadgram_sorted: Vec<_> = quadgram_occurrences.into_iter().collect();
+    quadgram_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    let mut pentagram_sorted: Vec<_> = pentagram_occurrences.into_iter().collect();
+    pentagram_sorted.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    match words_sorted.len() {
+        1 => println!("Top 1 word:"),
+        2..=127 => println!("Top {} words:", words_sorted.len()),
+        _ => println!("Top 128 words:"),
+    }
+
+    for (key, value) in words_sorted.iter().take(128) {
+        println!("{} {}", value, key);
+    } 
+    println!("");
+
+    match bigram_sorted.len() {
+        1 => println!("Top 1 interesting bigram:"),
+        2..=63 => println!("Top {} interesting bigrams:", bigram_sorted.len()),
+        _ => println!("Top 64 interesting bigrams:"),
+    }
+
+    for (bigram, count) in bigram_sorted.iter().take(64) {
+        println!("{} {}", count, bigram);
+    }
+    println!("");   
+
+    match trigram_sorted.len() {
+        1 => println!("Top 1 interesting trigram:"),
+        2..=31 => println!("Top {} interesting trigrams:", trigram_sorted.len()),
+        _ => println!("Top 32 interesting trigrams:"),
+    }
+
+    for(trigram, count) in trigram_sorted.iter().take(32) {
+        println!("{} {}", count, trigram);
+    } 
+    println!("");
+    
+    match quadgram_sorted.len() {
+        1 => println!("Top 1 interesting quadgram:"),
+        2..=15 => println!("Top {} interesting quadgrams:", quadgram_sorted.len()),
+        _ => println!("Top 16 interesting quadgrams:"),
+    }
+
+    for(trigram, count) in quadgram_sorted.iter().take(16) {
+        println!("{} {}", count, trigram);
+    }
+    println!("");
+
+    match pentagram_sorted.len() {
+        1 => println!("Top 1 interesting pentagram:"),
+        2..=7 => println!("Top {} interesting pentagrams:", pentagram_sorted.len()),
+        _ => println!("Top 8 interesting pentagrams:"),
+    }
+
+    for(trigram, count) in pentagram_sorted.iter().take(8) {
+        println!("{} {}", count, trigram);
+    }
+
+    
+    
+
     Ok(())
 }
