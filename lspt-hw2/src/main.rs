@@ -114,67 +114,14 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
     Ok(words)
 }
 
-/*
-fn get_bigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
-    let mut bigram_count = HashMap::new();
-    if words.len() == 0 {
-        return Ok(Vec::new());
-    }
-
-    for i in 0..words.len() - 1 {
-        let bigram = format!("{} {}", words[i], words[i + 1]);
-
-        let mut bad: bool = false;
-        for word in STOP_WORDS {
-            if *word == words[i] || *word == words[i+1] {
-                bad = true;
-                break;
-            }
-        }
-        if bad || words[i].len() < 2 || words[i+1].len() < 2 {
-            continue;
-        }
-
-        let count = bigram_count.entry(bigram).or_insert(0);
-        *count += 1;
-    }
-    Ok(bigram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
-}
-
-fn get_trigram_occurrences(words: &Vec<String>) -> io::Result<Vec<(String, i32)>> {
-    let mut trigram_count = HashMap::new();
-
-    if words.len() == 0 {
-        return Ok(Vec::new());
-    }
-
-    for i in 0..words.len() - 2 {
-        let trigram = format!("{} {} {}", words[i], words[i + 1], words[i + 2]);
-        let mut bad: bool = false;
-        for word in STOP_WORDS {
-            if *word == words[i] || *word == words[i+1] || *word == words[i+2] {
-                bad = true;
-                break;
-            }
-        }
-        if bad || words[i].len() < 2 || words[i+1].len() < 2 || words[i+2].len() < 2 {
-            continue;
-        }
-        let count = trigram_count.entry(trigram).or_insert(0);
-        *count += 1;
-    }
-
-    Ok(trigram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
-} */
-
-fn get_ngram_occurances(words: &Vec<String>, n: i32) -> io::Result<Vec<(String, i32)>> {
+fn get_ngram_occurrences(words: &Vec<String>, n: i32) -> io::Result<Vec<(String, i32)>> {
     let mut ngram_count = HashMap::new();
 
     if words.len() == 0 {
         return Ok(Vec::new());
     }
 
-    for i in 0..words.len() - n as usize {
+    for i in 0..words.len() - (n-1) as usize {
         let mut ngram = String::new();
         for j in 0..n {
             ngram.push_str(&words[i+j as usize]);
@@ -243,10 +190,10 @@ fn main() -> io::Result<()> {
             *cnt+= 1;
         }
 
-        let file_bigram_occurrences = get_ngram_occurances(&file_words, 2)?;
-        let file_trigram_occurrences = get_ngram_occurances(&file_words, 3)?;
-        let file_quadgram_occurrences = get_ngram_occurances(&file_words, 4)?;
-        let file_pentagram_occurrences = get_ngram_occurances(&file_words, 5)?;
+        let file_bigram_occurrences = get_ngram_occurrences(&file_words, 2)?;
+        let file_trigram_occurrences = get_ngram_occurrences(&file_words, 3)?;
+        let file_quadgram_occurrences = get_ngram_occurrences(&file_words, 4)?;
+        let file_pentagram_occurrences = get_ngram_occurrences(&file_words, 5)?;
 
         for (key, value) in file_bigram_occurrences.clone() {
             let count = bigram_occurrences.entry(key).or_insert(0);
@@ -325,7 +272,7 @@ fn main() -> io::Result<()> {
     for (key, value) in words_sorted.iter().take(128) {
         println!("{} {}", value, key);
     } 
-    println!("");
+    println!(""); 
 
     match bigram_sorted.len() {
         1 => println!("Top 1 interesting bigram:"),
@@ -370,5 +317,5 @@ fn main() -> io::Result<()> {
         println!("{} {}", count, pentagram);
     }
 
-    Ok(())
+    Ok(()) 
 }
