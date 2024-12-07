@@ -10,7 +10,7 @@ use std::env;
  * 
  * Refactor 2: Rename variable: 
  * 
- * Refactor 3: Replace Temp with Query: 
+ * Refactor 3: Replace Temp with Query (extract print statements?)
  * 
  * Refactor 4: 
  * 
@@ -114,6 +114,7 @@ fn read_words_from_file(file_path: &str) -> io::Result<Vec<String>> {
     Ok(words)
 }
 
+// current version
 fn get_ngram_occurrences(words: &Vec<String>, n: i32) -> io::Result<Vec<(String, i32)>> {
     let mut ngram_count = HashMap::new();
 
@@ -123,16 +124,31 @@ fn get_ngram_occurrences(words: &Vec<String>, n: i32) -> io::Result<Vec<(String,
 
     for i in 0..words.len() - (n-1) as usize {
         let mut ngram = String::new();
+        let mut bad: bool = false;
         for j in 0..n {
+            if bad {
+                break;
+            }
+            if words[i+j as usize].len() < 2 {
+                bad = true;
+                break;
+            }
             ngram.push_str(&words[i+j as usize]);
             ngram.push_str(" ");
         }
+
+        if bad {
+            continue;
+        }
+
         ngram.pop();
 
-        let mut bad: bool = false;
         for word in STOP_WORDS {
+            if bad {
+                break;
+            }
             for j in 0..n {
-                if words[i+j as usize].len() < 2 || words[i+j as usize] == *word {
+                if  words[i+j as usize] == *word {
                     bad = true;
                     break;
                 }
