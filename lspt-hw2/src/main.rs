@@ -5,6 +5,13 @@ use std::ffi::OsStr;
 use std::collections::{HashMap, HashSet};
 
 
+/*
+
+
+
+
+*/
+
 fn remove_stop_words(words: Vec<&str>) -> io::Result<Vec<&str>> {
     let stop_words: HashSet<&str> = [
         "the", "of", "to", "a", "and", "in", "said", "for", "that", "was", 
@@ -175,6 +182,8 @@ fn main() -> io::Result<()> {
 
         let mut bigram_count: i32 = 0;
         let mut trigram_count: i32 = 0;
+        let mut quadgram_count: i32 = 0;
+        let mut pentagram_count: i32 = 0;
         
         for (_, count) in bigram_occurences.clone() {
             bigram_count += count;
@@ -182,6 +191,14 @@ fn main() -> io::Result<()> {
 
         for (_, count) in trigram_occurences.clone() {
             trigram_count += count;
+        }
+
+        for (_, count) in quadgram_occurences.clone() {
+            quadgram_count += count;
+        }
+
+        for (_, count) in pentagram_occurences.clone() {
+            pentagram_count += count;
         }
         println!("Number of words : {}", words_len);
         println!("Number of unique words : {}", word_occurences.len());
