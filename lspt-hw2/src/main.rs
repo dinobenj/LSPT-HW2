@@ -302,10 +302,10 @@ fn main() -> io::Result<()> {
     println!("Number of unique \"interesting\" bigrams: {}", bigram_occurrences.len());
     println!("Number of \"interesting\" trigrams: {}", trigram_count);
     println!("Number of unique \"interesting\" trigrams: {}", trigram_occurrences.len());
-    println!("Number of \"interesting\" quadgrams: {}", quadgram_count);
-    println!("Number of unique \"interesting\" quadgrams: {}", quadgram_occurrences.len());
-    println!("Number of \"interesting\" pentagrams: {}", pentagram_count);
-    println!("Number of unique \"interesting\" pentagrams: {}\n", pentagram_occurrences.len());
+    println!("Number of \"interesting\" 4-grams: {}", quadgram_count);
+    println!("Number of unique \"interesting\" 4-grams: {}", quadgram_occurrences.len());
+    println!("Number of \"interesting\" 5-grams: {}", pentagram_count);
+    println!("Number of unique \"interesting\" 5-grams: {}\n", pentagram_occurrences.len());
 
     // sort
     let mut words_sorted: Vec<_> = word_occurrences.into_iter().collect();
@@ -357,9 +357,9 @@ fn main() -> io::Result<()> {
     println!("");
     
     match quadgram_sorted.len() {
-        1 => println!("Top 1 interesting quadgram:"),
-        2..=15 => println!("Top {} interesting quadgrams:", quadgram_sorted.len()),
-        _ => println!("Top 16 interesting quadgrams:"),
+        1 => println!("Top 1 interesting 4-gram:"),
+        2..=15 => println!("Top {} interesting 4-grams:", quadgram_sorted.len()),
+        _ => println!("Top 16 interesting 4-grams:"),
     }
 
     for(quadgram, count) in quadgram_sorted.iter().take(16) {
@@ -368,9 +368,9 @@ fn main() -> io::Result<()> {
     println!("");
 
     match pentagram_sorted.len() {
-        1 => println!("Top 1 interesting pentagram:"),
-        2..=7 => println!("Top {} interesting pentagrams:", pentagram_sorted.len()),
-        _ => println!("Top 8 interesting pentagrams:"),
+        1 => println!("Top 1 interesting 5-gram:"),
+        2..=7 => println!("Top {} interesting 5-grams:", pentagram_sorted.len()),
+        _ => println!("Top 8 interesting 5-grams:"),
     }
 
     for(pentagram, count) in pentagram_sorted.iter().take(8) {
