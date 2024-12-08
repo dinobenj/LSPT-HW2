@@ -7,17 +7,24 @@ use std::env;
 
 /**
  * Refactor 1: Extract Function (n-grams)
+ * Here, we extracted the bi-grams, and trigrams functions into a single function called get_ngram_occurrences
+ * which takes in the words and n as arguments and returns the n-grams where each n gram is made up of n words.
  * 
- * Refactor 2: Rename variable: 
+ * Refactor 2: Rename variable: (check_iter)
+ * Renamed the variable to check_iter as it is more descriptive of what the variable is, which is an iterator instead of temp
  * 
- * Refactor 3: Replace Temp with Query (extract print statements?)
+ * Refactor 3: Replace check_iter with Query (extract print statements?)
  * 
- * Refactor 4: 
+ * Refactor 4: Change Function Declaration (get_file_extension)
+ * Renamed the function to get file extension instead of get_filename_extension as it 
+ * is more descriptive of what the function does, as filename means its just a string
  * 
- * Refactor 5: 
+ * Refactor 5: Extract Variable (check_iter)
+ * Extracted and returned the check_iter variable into a separate variable to make the code more readable
+ * instead of having it have the lower() and filter() functions in the same line applied in the return
  * 
- * Refactor 6: 
- * 
+ * Refactor 6: Move Statements into Function (printing_occurrences)
+ * Moved the print statements into a separate function called printing_occurrences
  */
 
 const STOP_WORDS: &'static[&'static str] = &[
@@ -36,18 +43,18 @@ const STOP_WORDS: &'static[&'static str] = &[
  * All alpha characters are returned as alphabetic.
  */
 fn clean(check: String) -> String {
-    let mut temp: String = check.chars()
+    let mut check_iter: String = check.to_lowercase().chars()
         .filter(|&c| c != '\n' && c != '\t' && c != '\r' && c != '«' && c != '»' && c != '×')
         .collect();
 
-    temp = temp.replace(|c: char| !c.is_ascii(), " ");
+    check_iter = check_iter.replace(|c: char| !c.is_ascii(), " ");
 
     // parse entire line
     let mut apostrophe_count: i32 = 0;
     let mut in_word: bool = false;
     let mut last_apostrophe: bool = false;
 
-    for (i, c) in temp.clone().char_indices() {
+    for (i, c) in check_iter.clone().char_indices() {
         if !char::is_alphabetic(c) { 
             if c == '\'' && apostrophe_count == 0 && in_word {
                 // allow only one apostrophe 
@@ -56,12 +63,12 @@ fn clean(check: String) -> String {
             } else {
                 // turn all other non-alphabetical characters or additional apostrophes into whitespace
                 if last_apostrophe {
-                    temp.replace_range(i-1..i, " ");
+                    check_iter.replace_range(i-1..i, " ");
                     last_apostrophe = false;
                 }
                 apostrophe_count = 0;
                 in_word = false;
-                temp.replace_range(i..i+1, " ");
+                check_iter.replace_range(i..i+1, " ");
             }
         } else {
             if last_apostrophe {
@@ -72,14 +79,14 @@ fn clean(check: String) -> String {
     }
 
     if last_apostrophe {
-        temp.replace_range(temp.len()-1..temp.len(), " ");
+        check_iter.replace_range(check_iter.len()-1..check_iter.len(), " ");
     }
 
 
-    temp.to_lowercase()
+    check_iter
 }
 
-fn get_extension_from_filename(filename: &str) -> Option<&str> {
+fn get_file_extension(filename: &str) -> Option<&str> {
     Path::new(filename)
         .extension()
         .and_then(OsStr::to_str)
@@ -164,75 +171,7 @@ fn get_ngram_occurrences(words: &Vec<String>, n: i32) -> io::Result<Vec<(String,
     Ok(ngram_count.into_iter().map(|(bigram, count)| (bigram.clone(), count)).collect())
 }
 
-fn main() -> io::Result<()> {
-    let args: Vec<String> = env::args().collect();
-    let mut valid_documents: i32 = 0;
-    
-    if args.len() < 2 {
-        eprintln!("ERROR: too few arguments");
-        std::process::exit(1);
-    }
-
-    // variables for word content
-    let mut words: Vec<String> = Vec::new();
-    let mut word_occurrences: HashMap<String, i32> = HashMap::new();
-    let mut bigram_occurrences: HashMap<String, i32> = HashMap::new();
-    let mut trigram_occurrences: HashMap<String, i32> = HashMap::new();
-    let mut quadgram_occurrences: HashMap<String, i32> = HashMap::new();
-    let mut pentagram_occurrences: HashMap<String, i32> = HashMap::new();
-
-    for i in 1..args.len() {
-        let file_path = &args[i];
-
-        // check if path exists
-        if !(Path::new(file_path).exists()) {
-            eprintln!("ERROR: cannot access \"{}\"", file_path);
-            continue;
-        }
-
-        let file_extension = get_extension_from_filename(&file_path).unwrap();
-
-        if !(file_extension == "txt") {
-            eprintln!("ERROR: {} has unsupported filetype", file_path);
-            continue;
-        }
-
-        let file_words = read_words_from_file(file_path)?; // get raw words
-        let file_filtered_words = file_words.iter().filter(|w| w.len() >= 2).collect::<Vec<&String>>();
-
-        for word in file_filtered_words.clone() {
-            words.push(word.to_string());
-            let cnt = word_occurrences.entry(word.to_string()).or_insert(0);
-            *cnt+= 1;
-        }
-
-        let file_bigram_occurrences = get_ngram_occurrences(&file_words, 2)?;
-        let file_trigram_occurrences = get_ngram_occurrences(&file_words, 3)?;
-        let file_quadgram_occurrences = get_ngram_occurrences(&file_words, 4)?;
-        let file_pentagram_occurrences = get_ngram_occurrences(&file_words, 5)?;
-
-        for (key, value) in file_bigram_occurrences.clone() {
-            let count = bigram_occurrences.entry(key).or_insert(0);
-            *count+=value;
-        }
-
-        for (key, value) in file_trigram_occurrences.clone() {
-            let count = trigram_occurrences.entry(key).or_insert(0);
-            *count+=value;
-        }
-        for (key, value) in file_quadgram_occurrences.clone() {
-            let count = quadgram_occurrences.entry(key).or_insert(0);
-            *count+=value;
-        }
-        for (key, value) in file_pentagram_occurrences.clone() {
-            let count = pentagram_occurrences.entry(key).or_insert(0);
-            *count+=value;
-        }
-
-        valid_documents += 1;
-    }
-
-    // count number of bigram / trigrams
+fn printing_occurrences(valid_documents: i32, words: Vec<String>, word_occurrences: HashMap<String, i32>, bigram_occurrences: HashMap<String, i32>, trigram_occurrences: HashMap<String, i32>, quadgram_occurrences: HashMap<String, i32>, pentagram_occurrences: HashMap<String, i32>) {
     let mut bigram_count: i32 = 0;
     let mut trigram_count: i32 = 0;
     let mut quadgram_count: i32 = 0;
@@ -332,6 +271,78 @@ fn main() -> io::Result<()> {
     for(pentagram, count) in pentagram_sorted.iter().take(8) {
         println!("{} {}", count, pentagram);
     }
+}
+
+
+fn main() -> io::Result<()> {
+    let args: Vec<String> = env::args().collect();
+    let mut valid_documents: i32 = 0;
+    
+    if args.len() < 2 {
+        eprintln!("ERROR: too few arguments");
+        std::process::exit(1);
+    }
+
+    // variables for word content
+    let mut words: Vec<String> = Vec::new();
+    let mut word_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut bigram_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut trigram_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut quadgram_occurrences: HashMap<String, i32> = HashMap::new();
+    let mut pentagram_occurrences: HashMap<String, i32> = HashMap::new();
+
+    for i in 1..args.len() {
+        let file_path = &args[i];
+
+        // check if path exists
+        if !(Path::new(file_path).exists()) {
+            eprintln!("ERROR: cannot access \"{}\"", file_path);
+            continue;
+        }
+
+        let file_extension = get_file_extension(&file_path).unwrap();
+
+        if !(file_extension == "txt") {
+            eprintln!("ERROR: {} has unsupported filetype", file_path);
+            continue;
+        }
+
+        let file_words = read_words_from_file(file_path)?; // get raw words
+        let file_filtered_words = file_words.iter().filter(|w| w.len() >= 2).collect::<Vec<&String>>();
+
+        for word in file_filtered_words.clone() {
+            words.push(word.to_string());
+            let cnt = word_occurrences.entry(word.to_string()).or_insert(0);
+            *cnt+= 1;
+        }
+
+        let file_bigram_occurrences = get_ngram_occurrences(&file_words, 2)?;
+        let file_trigram_occurrences = get_ngram_occurrences(&file_words, 3)?;
+        let file_quadgram_occurrences = get_ngram_occurrences(&file_words, 4)?;
+        let file_pentagram_occurrences = get_ngram_occurrences(&file_words, 5)?;
+
+        for (key, value) in file_bigram_occurrences.clone() {
+            let count = bigram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+
+        for (key, value) in file_trigram_occurrences.clone() {
+            let count = trigram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+        for (key, value) in file_quadgram_occurrences.clone() {
+            let count = quadgram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+        for (key, value) in file_pentagram_occurrences.clone() {
+            let count = pentagram_occurrences.entry(key).or_insert(0);
+            *count+=value;
+        }
+
+        valid_documents += 1;
+    }
+    printing_occurrences(valid_documents, words, word_occurrences, bigram_occurrences, trigram_occurrences, quadgram_occurrences, pentagram_occurrences);
+    
 
     Ok(()) 
 }
